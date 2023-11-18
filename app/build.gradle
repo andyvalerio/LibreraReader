@@ -207,7 +207,6 @@ dependencies {
 
 /** Third-party **/
     implementation 'com.github.axet:lame:1.0.9'
-
     implementation 'org.greenrobot:eventbus:3.3.1'
     implementation('org.greenrobot:greendao:3.3.0') {
         exclude group: 'org.greenrobot.greendao.rx'

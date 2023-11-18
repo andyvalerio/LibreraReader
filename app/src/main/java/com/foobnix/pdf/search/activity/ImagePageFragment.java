@@ -22,7 +22,6 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.foobnix.android.utils.LOG;
-import com.foobnix.android.utils.TxtUtils;
 import com.foobnix.pdf.info.IMG;
 import com.foobnix.pdf.info.R;
 import com.foobnix.pdf.info.wrapper.MagicHelper;
@@ -46,7 +45,7 @@ public class ImagePageFragment extends Fragment {
     boolean fistTime = true;
     CustomTarget<Bitmap> target = null;
     Future<?> submit;
-    private PageImaveView image;
+    private PageView image;
     private TextView text;
     Runnable callback = new Runnable() {
 
@@ -73,7 +72,7 @@ public class ImagePageFragment extends Fragment {
 
 
         text = (TextView) view.findViewById(R.id.text1);
-        image = (PageImaveView) view.findViewById(R.id.myImage1);
+        image = (PageView) view.findViewById(R.id.myImage1);
 
         image.setPageNumber(page);
         text.setText(getString(R.string.page) + " " + (page + 1));
@@ -207,7 +206,7 @@ public class ImagePageFragment extends Fragment {
             if (image != null) {
                 image.imageMatrix().getValues(values);
                 if (values[Matrix.MSCALE_X] == 0) {
-                    PageImageState.get().isAutoFit = true;
+                    PageState.get().isAutoFit = true;
                     image.autoFit();
                     LOG.d("fonResume-autofit", page);
                 }
@@ -217,7 +216,7 @@ public class ImagePageFragment extends Fragment {
     }
 
     public int getPriority() {
-        return Math.min(Math.abs(PageImageState.currentPage - page), 10);
+        return Math.min(Math.abs(PageState.currentPage - page), 10);
     }
 
 

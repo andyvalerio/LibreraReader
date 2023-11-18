@@ -17,31 +17,23 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Scroller;
-import android.widget.Toast;
 
-import com.foobnix.android.utils.Apps;
 import com.foobnix.android.utils.Dips;
 import com.foobnix.android.utils.LOG;
 import com.foobnix.android.utils.TxtUtils;
-import com.foobnix.android.utils.Vibro;
 import com.foobnix.model.AppSP;
 import com.foobnix.model.AppState;
-import com.foobnix.pdf.info.R;
 import com.foobnix.pdf.info.model.BookCSS;
 import com.foobnix.pdf.info.view.BrightnessHelper;
-import com.foobnix.pdf.info.view.Dialogs;
 import com.foobnix.pdf.info.wrapper.MagicHelper;
 import com.foobnix.pdf.search.activity.msg.InvalidateMessage;
 import com.foobnix.pdf.search.activity.msg.MessageAutoFit;
 import com.foobnix.pdf.search.activity.msg.MessageCenterHorizontally;
-import com.foobnix.pdf.search.activity.msg.MessageEvent;
 import com.foobnix.pdf.search.activity.msg.MessagePageXY;
 import com.foobnix.pdf.search.activity.msg.MovePageAction;
 import com.foobnix.pdf.search.activity.msg.TextWordsMessage;
 import com.foobnix.sys.ClickUtils;
 import com.foobnix.sys.TempHolder;
-
-import com.foobnix.LibreraApp;
 
 import org.ebookdroid.core.codec.Annotation;
 import org.ebookdroid.core.codec.PageLink;
@@ -51,8 +43,7 @@ import org.greenrobot.eventbus.Subscribe;
 
 import java.util.Collections;
 import java.util.List;
-
-public class PageImaveView extends View {
+public class PageView extends View {
 
     public static int MIN = Dips.dpToPx(15);
     static volatile boolean isFirstZoomInOut = true;
@@ -69,7 +60,7 @@ public class PageImaveView extends View {
     int drawableHeight, drawableWidth;
     GestureDetector gestureDetector;
     Scroller scroller;
-    ImageSimpleGestureListener imageGestureListener;
+    SimpleGestureListener imageGestureListener;
     Paint paintWrods = new Paint();
     float x, y, xInit, yInit, cx, cy, distance = 0;
     ClickUtils clickUtils;
@@ -102,18 +93,56 @@ public class PageImaveView extends View {
 
         }
     };
+
     private boolean isReadyForMove = false;
-    private boolean isLognPress = false;
+    private boolean isLongPress = false;
+
+    public boolean isReadyForMove() {
+        return isReadyForMove;
+    }
+
+    public void setReadyForMove(boolean readyForMove) {
+        isReadyForMove = readyForMove;
+    }
+
+    public boolean isLongPress() {
+        return isLongPress;
+    }
+
+    public void setLongPress(boolean longPress) {
+        isLongPress = longPress;
+    }
+
+    public boolean isIgronerClick() {
+        return isIgronerClick;
+    }
+
+    public void setIgronerClick(boolean igronerClick) {
+        isIgronerClick = igronerClick;
+    }
+
+    public int getIsMoveNextPrev() {
+        return isMoveNextPrev;
+    }
+
+    public void setIsMoveNextPrev(int isMoveNextPrev) {
+        this.isMoveNextPrev = isMoveNextPrev;
+    }
+
+    public int getPageNumber() {
+        return pageNumber;
+    }
+
     private boolean isIgronerClick = false;
     private int isMoveNextPrev = 0;
     private int pageNumber;
 
-    public PageImaveView(final Context context, final AttributeSet attrs) {
+    public PageView(final Context context, final AttributeSet attrs) {
         super(context, attrs);
 
         handler = new Handler();
         scroller = new Scroller(getContext(), new AccelerateDecelerateInterpolator());
-        imageGestureListener = new ImageSimpleGestureListener();
+        imageGestureListener = new SimpleGestureListener(this);
         gestureDetector = new GestureDetector(context, imageGestureListener);
 
         paintWrods.setStrokeWidth(Dips.dpToPx(1));
@@ -159,9 +188,9 @@ public class PageImaveView extends View {
 
                 TextWord[][] t = null;
                 if (number == 1) {
-                    t = PageImageState.get().pagesText.get(page);
+                    t = PageState.get().pagesText.get(page);
                 } else if (number == 2) {
-                    t = PageImageState.get().pagesText.get(page + 1);
+                    t = PageState.get().pagesText.get(page + 1);
                 }
 
                 for (int i = 0; i < t.length; i++) {
@@ -174,7 +203,7 @@ public class PageImaveView extends View {
 
                 return t;
             } else {
-                return PageImageState.get().pagesText.get(pageNumber);
+                return PageState.get().pagesText.get(pageNumber);
             }
         } catch (Exception e) {
             LOG.e(e);
@@ -203,11 +232,11 @@ public class PageImaveView extends View {
                     page--;
                 }
                 if (number == 1) {
-                    t = PageImageState.get().pagesLinks.get(page);
-                    a = PageImageState.get().pagesAnnotation.get(page);
+                    t = PageState.get().pagesLinks.get(page);
+                    a = PageState.get().pagesAnnotation.get(page);
                 } else if (number == 2) {
-                    t = PageImageState.get().pagesLinks.get(page + 1);
-                    a = PageImageState.get().pagesAnnotation.get(page + 1);
+                    t = PageState.get().pagesLinks.get(page + 1);
+                    a = PageState.get().pagesAnnotation.get(page + 1);
                 }
 
                 if (t != null) {
@@ -218,8 +247,8 @@ public class PageImaveView extends View {
                     }
                 }
             } else {
-                t = PageImageState.get().pagesLinks.get(pageNumber);
-                a = PageImageState.get().pagesAnnotation.get(pageNumber);
+                t = PageState.get().pagesLinks.get(pageNumber);
+                a = PageState.get().pagesAnnotation.get(pageNumber);
             }
 
             if (t == null) {
@@ -241,7 +270,7 @@ public class PageImaveView extends View {
     }
 
     public Matrix imageMatrix() {
-        return PageImageState.get().getMatrix();
+        return PageState.get().getMatrix();
     }
 
     @Subscribe
@@ -289,7 +318,7 @@ public class PageImaveView extends View {
 
         if (MovePageAction.CENTER == event.getAction()) {
             LOG.d("Action center", event.getPage());
-            PageImageState.get().isAutoFit = true;
+            PageState.get().isAutoFit = true;
             onAutoFit(new MessageAutoFit(event.getPage()));
             return;
         }
@@ -309,7 +338,7 @@ public class PageImaveView extends View {
         }
         LOG.d("MMM SCALE", mScale);
 
-        PageImageState.get().isAutoFit = false;
+        PageState.get().isAutoFit = false;
         invalidateAndMsg();
 
     }
@@ -375,12 +404,12 @@ public class PageImaveView extends View {
                 imageDrawable.draw(canvas);
             }
 
-            if (PageImageState.get().isShowCuttingLine && AppSP.get().isCut == false) {
+            if (PageState.get().isShowCuttingLine && AppSP.get().isCut == false) {
                 int offset = drawableWidth * AppState.get().cutP / 100;
                 canvas.drawLine(offset, 0, offset, drawableHeight, paintWrods);
             }
 
-            List<TextWord> selectedWords = PageImageState.get().getSelectedWords(pageNumber);
+            List<TextWord> selectedWords = PageState.get().getSelectedWords(pageNumber);
             if (selectedWords != null) {
                 for (TextWord tw : selectedWords) {
                     drawWord(canvas, tw);
@@ -453,7 +482,7 @@ public class PageImaveView extends View {
     }
 
     public void autoFit() {
-        if (!PageImageState.get().isAutoFit) {
+        if (!PageState.get().isAutoFit) {
             return;
         }
 
@@ -474,15 +503,15 @@ public class PageImaveView extends View {
         }
     }
 
-    private float centerX(final MotionEvent event) {
+    float centerX(final MotionEvent event) {
         return (event.getX() + event.getX(1)) / 2;
     }
 
-    private float centerY(final MotionEvent event) {
+    float centerY(final MotionEvent event) {
         return (event.getY() + event.getY(1)) / 2;
     }
 
-    private float discance(final MotionEvent event) {
+    float distance(final MotionEvent event) {
         final float x1 = event.getX();
         final float y1 = event.getY();
 
@@ -617,7 +646,7 @@ public class PageImaveView extends View {
             tapRect.sort();
         }
 
-        PageImageState.get().cleanSelectedWords();
+        PageState.get().cleanSelectedWords();
 
         StringBuilder build = new StringBuilder();
 
@@ -656,15 +685,15 @@ public class PageImaveView extends View {
 
                         if (prevWord != null && prevWord.w.endsWith("-") && !isHyphenWorld) {
                             build.append(prevWord.w.replace("-", ""));
-                            PageImageState.get().addWord(pageNumber, prevWord);
+                            PageState.get().addWord(pageNumber, prevWord);
                         }
 
                         if (!isHyphenWorld) {
-                            PageImageState.get().addWord(pageNumber, textWord);
+                            PageState.get().addWord(pageNumber, textWord);
                         }
 
                         if (isHyphenWorld && TxtUtils.isNotEmpty(textWord.getWord())) {
-                            PageImageState.get().addWord(pageNumber, textWord);
+                            PageState.get().addWord(pageNumber, textWord);
                             isHyphenWorld = false;
                         }
                         if (textWord.getWord().endsWith("-")) {
@@ -675,17 +704,17 @@ public class PageImaveView extends View {
                 } else {
                     if (y > yInit) {
                         if (wordRect.top < tapRect.top && wordRect.bottom > tapRect.top && wordRect.right > tapRect.left) {
-                            PageImageState.get().addWord(pageNumber, textWord);
+                            PageState.get().addWord(pageNumber, textWord);
                             build.append(textWord.getWord() + TxtUtils.space());
                         } else if (wordRect.top < tapRect.bottom && wordRect.bottom > tapRect.bottom && wordRect.left < tapRect.right) {
-                            PageImageState.get().addWord(pageNumber, textWord);
+                            PageState.get().addWord(pageNumber, textWord);
                             build.append(textWord.getWord() + TxtUtils.space());
                         } else if (wordRect.top > tapRect.top && wordRect.bottom < tapRect.bottom) {
-                            PageImageState.get().addWord(pageNumber, textWord);
+                            PageState.get().addWord(pageNumber, textWord);
                             build.append(textWord.getWord() + TxtUtils.space());
                         }
                     } else if (RectF.intersects(wordRect, tapRect)) {
-                        PageImageState.get().addWord(pageNumber, textWord);
+                        PageState.get().addWord(pageNumber, textWord);
                         if (AppState.get().selectingByLetters) {
                             build.append(textWord.w);
                         } else {
@@ -731,346 +760,6 @@ public class PageImaveView extends View {
         AppState.get().selectedText = txt;
         invalidate();
         return txt;
-    }
-
-    class ImageSimpleGestureListener extends SimpleTouchOnGestureListener {
-
-        @Override
-        public boolean onDoubleTap(final MotionEvent e) {
-            clickUtils.init();
-            isIgronerClick = true;
-            if (clickUtils.isClickCenter(e.getX(), e.getY())) {
-                isLognPress = true;
-
-                if (AppState.get().doubleClickAction1 == AppState.DOUBLE_CLICK_NOTHING) {
-
-                } else if (AppState.get().doubleClickAction1 == AppState.DOUBLE_CLICK_ZOOM_IN_OUT) {
-                    if (isFirstZoomInOut) {
-                        imageMatrix().preTranslate(getWidth() / 2 - e.getX(), getHeight() / 2 - e.getY());
-                        imageMatrix().postScale(2.5f, 2.5f, getWidth() / 2, getHeight() / 2);
-                        isFirstZoomInOut = false;
-                        prevLock = AppSP.get().isLocked;
-                        AppSP.get().isLocked = false;
-                        invalidateAndMsg();
-                        PageImageState.get().isAutoFit = false;
-
-                    } else {
-                        AppSP.get().isLocked = prevLock;
-                        if (BookCSS.get().isTextFormat()) {
-                            AppSP.get().isLocked = true;
-                        }
-                        isLognPress = true;
-                        PageImageState.get().isAutoFit = true;
-                        autoFit();
-                        invalidateAndMsg();
-                        isFirstZoomInOut = true;
-
-                    }
-                } else if (AppState.get().doubleClickAction1 == AppState.DOUBLE_CLICK_CLOSE_BOOK) {
-                    EventBus.getDefault().post(new MessageEvent(MessageEvent.MESSAGE_CLOSE_BOOK, e.getX(), e.getY()));
-                } else if (AppState.get().doubleClickAction1 == AppState.DOUBLE_CLICK_AUTOSCROLL) {
-                    EventBus.getDefault().post(new MessageEvent(MessageEvent.MESSAGE_AUTO_SCROLL));
-                } else if (AppState.get().doubleClickAction1 == AppState.DOUBLE_CLICK_CLOSE_BOOK_AND_APP) {
-                    EventBus.getDefault().post(new MessageEvent(MessageEvent.MESSAGE_CLOSE_BOOK_APP, e.getX(), e.getY()));
-                } else if (AppState.get().doubleClickAction1 == AppState.DOUBLE_CLICK_CLOSE_HIDE_APP) {
-                    Apps.showDesctop(getContext());
-                } else if (AppState.get().doubleClickAction1 == AppState.DOUBLE_CLICK_START_STOP_TTS) {
-                    EventBus.getDefault().post(new MessageEvent(MessageEvent.MESSAGE_PLAY_PAUSE, e.getX(), e.getY()));
-                } else if (AppState.get().doubleClickAction1 == AppState.DOUBLE_CLICK_CENTER_HORIZONTAL) {
-                    PageImageState.get().isAutoFit = false;
-                    onCenterHorizontally(new MessageCenterHorizontally(pageNumber));
-                } else {
-                    PageImageState.get().isAutoFit = true;
-                    autoFit();
-                    invalidateAndMsg();
-                }
-
-                EventBus.getDefault().post(new MessageEvent(MessageEvent.MESSAGE_DOUBLE_TAP, e.getX(), e.getY()));
-                return true;
-            }
-
-            return true;
-        }
-
-        ;
-
-        @Override
-        public boolean onFling(final MotionEvent e1, final MotionEvent e2, final float velocityX, final float velocityY) {
-
-            if (e1.getX() < BrightnessHelper.BRIGHTNESS_WIDTH) {
-                return false;
-            }
-            if (AppState.get().selectedText != null) {
-                return false;
-            }
-            if (AppSP.get().isLocked) {
-                return false;
-            }
-            if (isReadyForMove) {
-                isIgronerClick = true;
-                scroller.fling((int) e2.getX(), (int) e2.getY(), (int) velocityX / 3, (int) velocityY / 3, Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MAX_VALUE);
-                handler.post(scrolling);
-            }
-            return true;
-        }
-
-        @Override
-        public void onLongPress(MotionEvent e) {
-            isIgronerClick = true;
-
-            if (AppState.get().isSelectTexByTouch) {
-                //EventBus.getDefault().post(new MessageEvent(MessageEvent.MESSAGE_PERFORM_CLICK, e.getX(), e.getY()));
-                isLognPress = false;
-                isIgronerClick = true;
-                AppState.get().selectedText = null;
-                EventBus.getDefault().post(new MessagePageXY(MessagePageXY.TYPE_HIDE));
-                if (new ClickUtils().isClickCenter(e.getX(), e.getY())) {
-                    EventBus.getDefault().post(new MessageEvent(MessageEvent.MESSAGE_PERFORM_CLICK, e.getX(), e.getY()));
-                }
-                LOG.d("PageImaveView MESSAGE_PERFORM_CLICK", 3);
-
-
-                return;
-            }
-
-            if (!AppState.get().isAllowTextSelection) {
-                Toast.makeText(LibreraApp.context, R.string.text_highlight_mode_is_disable, Toast.LENGTH_LONG).show();
-                return;
-            }
-
-            Vibro.vibrate();
-            if (AppSP.get().isCut || AppSP.get().isCrop) {
-                Toast.makeText(LibreraApp.context, R.string.the_page_is_clipped_the_text_selection_does_not_work, Toast.LENGTH_LONG).show();
-                return;
-            }
-            isLognPress = true;
-            xInit = e.getX();
-            yInit = e.getY();
-            String selectText = selectText(xInit, yInit, e.getX(), e.getY());
-            if (TxtUtils.isEmpty(selectText)) {
-                AppState.get().selectedText = null;
-                EventBus.getDefault().post(new MessagePageXY(MessagePageXY.TYPE_HIDE));
-
-            }
-        }
-
-        @Override
-        public boolean onTouchEvent(final MotionEvent event) {
-            final int action = event.getAction() & MotionEvent.ACTION_MASK;
-
-            if (action == MotionEvent.ACTION_DOWN) {
-                AppState.get().selectedText = null;
-                LOG.d("TEST", "action ACTION_DOWN");
-                scroller.forceFinished(true);
-                x = event.getX();
-                y = event.getY();
-                brightnessHelper.onActoinDown(x, y);
-                isReadyForMove = false;
-                if (AppState.get().isSelectTexByTouch) {
-                    isLognPress = true;
-                    isIgronerClick = true;
-                    xInit = x;
-                    yInit = y;
-                } else {
-                    isLognPress = false;
-                }
-                isMoveNextPrev = 0;
-                EventBus.getDefault().post(new MessagePageXY(MessagePageXY.TYPE_HIDE));
-            } else if (action == MotionEvent.ACTION_MOVE) {
-                if (event.getPointerCount() == 1) {
-                    LOG.d("TEST", "action ACTION_MOVE 1");
-                    final float dx = event.getX() - x;
-                    final float dy = event.getY() - y;
-
-                    if (isLognPress) {
-                        String selectText = selectText(event.getX(), event.getY(), xInit, yInit);
-                        if (selectText != null && selectText.contains(" ")) {
-                            EventBus.getDefault().post(new MessagePageXY(MessagePageXY.TYPE_SHOW, -1, xInit, yInit, event.getX(), event.getY()));
-                        }
-                    } else {
-
-                        if (AppSP.get().isLocked) {
-                            isReadyForMove = false;
-                            if (AppState.get().isSelectTexByTouch) {
-                                isIgronerClick = true;
-                            } else {
-                                isIgronerClick = false;
-                            }
-                            if (AppState.get().isEnableVerticalSwipe && Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > Dips.DP_10) {
-                                if (AppState.get().isSwipeGestureReverse) {
-                                    isMoveNextPrev = dy > 0 ? -1 : 1;
-                                } else {
-                                    isMoveNextPrev = dy > 0 ? 1 : -1;
-                                }
-                            }
-
-                        } else {
-                            if (AppState.get().rotateViewPager == 0) {
-                                if (Math.abs(dy) > Math.abs(dx) && (Math.abs(dy) + Math.abs(dx) > Dips.DP_10)) {
-                                    isReadyForMove = true;
-                                    isIgronerClick = true;
-                                }
-                            } else {
-                                if (Math.abs(dx) > Math.abs(dy) && (Math.abs(dx) + Math.abs(dy) > Dips.DP_10)) {
-                                    isReadyForMove = true;
-                                    isIgronerClick = true;
-                                }
-                            }
-                        }
-
-                        boolean isBrightness = brightnessHelper.onActionMove(event);
-                        if (isBrightness) {
-                            isIgronerClick = true;
-                            isMoveNextPrev = 0;
-                        }
-
-                        if (!isBrightness && isReadyForMove && !AppSP.get().isLocked) {
-
-                            imageMatrix().postTranslate(dx, dy);
-
-                            PageImageState.get().isAutoFit = false;
-                            invalidateAndMsg();
-
-                            x = event.getX();
-                            y = event.getY();
-                        }
-
-                    }
-
-                }
-
-                if (event.getPointerCount() == 2) {
-                    isIgronerClick = true;
-
-                    LOG.d("TEST", "action ACTION_MOVE 2");
-                    if (cx == 0) {
-                        cx = centerX(event);
-                        cy = centerY(event);
-                    }
-                    final float nDistance = discance(event);
-
-                    if (distance == 0) {
-                        distance = nDistance;
-                    }
-
-                    final float scale = nDistance / distance;
-                    distance = nDistance;
-                    final float centerX = centerX(event);
-                    final float centerY = centerY(event);
-
-                    final float values[] = new float[9];
-                    imageMatrix().getValues(values);
-
-                    if (AppState.get().isZoomInOutWithLock || !AppSP.get().isLocked) {
-                        LOG.d("postScale", scale, values[Matrix.MSCALE_X]);
-                        if (values[Matrix.MSCALE_X] > 0.3f || scale > 1) {
-                            imageMatrix().postScale(scale, scale, centerX, centerY);
-                            EventBus.getDefault().post(new MessagePageXY(MessagePageXY.TYPE_HIDE));
-                        }
-                    }
-                    final float dx = centerX - cx;
-                    final float dy = centerY - cy;
-                    if (AppState.get().isZoomInOutWithLock || !AppSP.get().isLocked) {
-                        imageMatrix().postTranslate(dx, dy);
-                        EventBus.getDefault().post(new MessagePageXY(MessagePageXY.TYPE_HIDE));
-                    }
-                    cx = centerX(event);
-                    cy = centerY(event);
-
-                    PageImageState.get().isAutoFit = false;
-                    invalidateAndMsg();
-
-                }
-            } else if (action == MotionEvent.ACTION_POINTER_UP) {
-                LOG.d("TEST", "action ACTION_POINTER_UP");
-                // isDoubleTouch = true;
-                int actionIndex = event.getActionIndex();
-                LOG.d("TEST", "actionIndex " + actionIndex);
-                if (actionIndex == 1) {
-                    x = event.getX();
-                    y = event.getY();
-                } else {
-                    x = event.getX(1);
-                    y = event.getY(1);
-                }
-                cx = 0;
-                distance = 0;
-
-            } else if (action == MotionEvent.ACTION_UP) {
-                brightnessHelper.onActionUp();
-
-                LOG.d("TEST", "action ACTION_UP", "long: " + isLognPress);
-                distance = 0;
-                isReadyForMove = false;
-                cx = 0;
-                cy = 0;
-
-                if (isLognPress) {
-                    String selectText = selectText(event.getX(), event.getY(), xInit, yInit);
-                    if (selectText != null && selectText.contains(" ")) {
-                        EventBus.getDefault().post(new MessagePageXY(MessagePageXY.TYPE_SHOW, -1, xInit, yInit, event.getX(), event.getY()));
-                    }
-
-                } else if (BookCSS.get().isTextFormat()) {
-                    if (!TempHolder.isSeaching) {
-                        selectText(event.getX(), event.getY(), event.getX(), event.getY());
-                        if (!TxtUtils.isFooterNote(AppState.get().selectedText)) {
-                            PageImageState.get().cleanSelectedWords();
-                            AppState.get().selectedText = null;
-                            invalidate();
-
-                            EventBus.getDefault().post(new MessagePageXY(MessagePageXY.TYPE_HIDE));
-                        }
-                    }
-                }
-
-                if (!isIgronerClick) {
-                    int target = 0;
-                    Pair<PageLink, Annotation> pair = getPageLinkClicked(event.getX(), event.getY());
-                    PageLink pageLink = pair.first;
-                    if (pageLink != null) {
-                        target = pageLink.targetPage;
-                        if (AppSP.get().isDouble && target != -1) {
-                            target = pageLink.targetPage / 2;
-                        }
-                        TempHolder.get().linkPage = target;
-                        LOG.d("Go to targetPage", target);
-                    }
-                    if (pair.second != null) {
-                        Dialogs.showTextDialog(getContext(), pair.second.text);
-                    }
-
-                    if (isMoveNextPrev != 0) {
-                        LOG.d("isMoveNextPrev", isMoveNextPrev);
-                        EventBus.getDefault().post(new MessageEvent(MessageEvent.MESSAGE_GOTO_PAGE_SWIPE, isMoveNextPrev));
-                    } else if (TxtUtils.isNotEmpty(AppState.get().selectedText)) {
-                        EventBus.getDefault().post(new MessageEvent(MessageEvent.MESSAGE_SELECTED_TEXT));
-                    } else if (pageLink != null) {
-                        EventBus.getDefault().post(new MessageEvent(MessageEvent.MESSAGE_GOTO_PAGE_BY_LINK, target, pageLink.url));
-                    } else {
-                        LOG.d("PageImaveView MESSAGE_PERFORM_CLICK", 1);
-                        EventBus.getDefault().post(new MessageEvent(MessageEvent.MESSAGE_PERFORM_CLICK, event.getX(), event.getY()));
-                    }
-                } else {
-
-                    if (TxtUtils.isNotEmpty(AppState.get().selectedText)) {
-                        EventBus.getDefault().post(new MessageEvent(MessageEvent.MESSAGE_SELECTED_TEXT));
-                    } else if (AppState.get().isSelectTexByTouch && !new ClickUtils().isClickCenter(event.getX(), event.getY())) {
-                        LOG.d("PageImaveView MESSAGE_PERFORM_CLICK", 2);
-                        EventBus.getDefault().post(new MessageEvent(MessageEvent.MESSAGE_PERFORM_CLICK, event.getX(), event.getY()));
-                    }
-
-
-                }
-
-                isIgronerClick = false;
-            } else if (action == MotionEvent.ACTION_CANCEL) {
-                LOG.d("TEST", "action ACTION_CANCEL");
-            }
-
-            return true;
-        }
-
     }
 
 }

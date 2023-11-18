@@ -367,7 +367,7 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
         reloadDocBrigntness.run();
         onCrop.underline(AppSP.get().isCrop);
 
-        PageImageState.get().isAutoFit = true;
+        PageState.get().isAutoFit = true;
         EventBus.getDefault().post(new MessageAutoFit(viewPager.getCurrentItem()));
 
         AppState.get().isEditMode = false;
@@ -410,9 +410,9 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
 
 
         // AppSP.get().isCut = false;
-        PageImageState.get().isShowCuttingLine = false;
+        PageState.get().isShowCuttingLine = false;
 
-        PageImageState.get().cleanSelectedWords();
+        PageState.get().cleanSelectedWords();
 
         setContentView(R.layout.activity_horiziontal_view);
 
@@ -1207,10 +1207,10 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
                     onModeChange.setVisibility(View.VISIBLE);
 
 
-                    PageImageState.get().isAutoFit = PageImageState.get().needAutoFit;
+                    PageState.get().isAutoFit = PageState.get().needAutoFit;
 
                     if (ExtUtils.isTextFomat(getIntent())) {
-                        PageImageState.get().isAutoFit = true;
+                        PageState.get().isAutoFit = true;
                         // moveCenter.setVisibility(View.GONE);
                     } else if (AppState.get().isLockPDF) {
                         // moveCenter.setVisibility(View.VISIBLE);
@@ -1359,12 +1359,12 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
 
         @Override
         public void onPageSelected(final int pos) {
-            PageImageState.currentPage = pos;
+            PageState.currentPage = pos;
             dc.setCurrentPage(viewPager.getCurrentItem());
             updateUI(pos);
 
 
-            if (PageImageState.get().isAutoFit) {
+            if (PageState.get().isAutoFit) {
                 EventBus.getDefault().post(new MessageAutoFit(pos));
             }
 
@@ -1651,7 +1651,7 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
         nullAdapter();
 
         // AppSP.get().isCut = false;
-        PageImageState.get().clearResouces();
+        PageState.get().clearResouces();
 
 
         super.onDestroy();
@@ -2076,7 +2076,7 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
 
             @Override
             public void run() {
-                PageImageState.get().isAutoFit = true;
+                PageState.get().isAutoFit = true;
                 if (dc != null) {
                     dc.cleanImageMatrix();
                 }
@@ -2431,7 +2431,7 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
                         isMyKey = true;
                         return true;
                     }
-                    if (PageImageState.get().hasSelectedWords()) {
+                    if (PageState.get().hasSelectedWords()) {
                         dc.clearSelectedText();
                         isMyKey = true;
                         return true;
@@ -2445,7 +2445,7 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
                         isMyKey = true;
                         return true;
                     }
-                    if (PageImageState.get().hasSelectedWords()) {
+                    if (PageState.get().hasSelectedWords()) {
                         dc.clearSelectedText();
                         isMyKey = true;
                         return true;

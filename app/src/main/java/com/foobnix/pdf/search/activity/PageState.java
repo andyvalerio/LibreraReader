@@ -13,10 +13,10 @@ import org.ebookdroid.droids.mupdf.codec.TextWord;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PageImageState {
+public class PageState {
     private static final int M9 = 9;
 
-    private final static PageImageState instance = new PageImageState();
+    private final static PageState instance = new PageState();
 
     private SparseArray<List<TextWord>> selectedWords = new SparseArray<List<TextWord>>();
     public final SparseArray<TextWord[][]> pagesText = new SparseArray<TextWord[][]>();
@@ -31,7 +31,7 @@ public class PageImageState {
 
     public boolean needAutoFit = false;
 
-    public static PageImageState get() {
+    public static PageState get() {
         return instance;
     }
 

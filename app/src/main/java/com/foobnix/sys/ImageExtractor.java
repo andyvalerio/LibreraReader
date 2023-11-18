@@ -1,6 +1,5 @@
 package com.foobnix.sys;
 
-import static com.foobnix.pdf.info.io.SearchCore.SUPPORTED_EXT_AND_DIRS_FILTER;
 import static com.foobnix.pdf.info.io.SearchCore.SUPPORTED_EXT_FILES_ONLY;
 
 import android.content.Context;
@@ -14,7 +13,6 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.VectorDrawable;
 import android.graphics.pdf.PdfRenderer;
 import android.net.Uri;
 import android.os.Build;
@@ -50,7 +48,7 @@ import com.foobnix.pdf.info.R;
 import com.foobnix.pdf.info.TintUtil;
 import com.foobnix.pdf.info.model.BookCSS;
 import com.foobnix.pdf.info.wrapper.MagicHelper;
-import com.foobnix.pdf.search.activity.PageImageState;
+import com.foobnix.pdf.search.activity.PageState;
 import com.foobnix.ui2.AppDB;
 import com.foobnix.ui2.FileMetaCore;
 import com.foobnix.ui2.fragment.BrowseFragment2;
@@ -74,7 +72,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
@@ -513,10 +510,10 @@ public class ImageExtractor {
 
             //if (HorizontalViewActivity.class.getSimpleName().equals(AppSP.get().lastClosedActivity)) {
             TextWord[][] text = pageCodec.getText();
-            PageImageState.get().pagesText.put(pageUrl.getPage(), text);
-            PageImageState.get().pagesLinks.put(pageUrl.getPage(), pageCodec.getPageLinks());
+            PageState.get().pagesText.put(pageUrl.getPage(), text);
+            PageState.get().pagesLinks.put(pageUrl.getPage(), pageCodec.getPageLinks());
             if(BookType.PDF.is(path)) {
-                PageImageState.get().pagesAnnotation.put(pageUrl.getPage(), pageCodec.getAnnotations());
+                PageState.get().pagesAnnotation.put(pageUrl.getPage(), pageCodec.getAnnotations());
             }
             LOG.d("pageUrl Load-page-text", text != null ? text.length : 0);
             //}

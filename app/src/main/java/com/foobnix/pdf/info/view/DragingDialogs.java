@@ -61,7 +61,6 @@ import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupMenu;
-import android.widget.PopupWindow;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Spinner;
@@ -130,7 +129,7 @@ import com.foobnix.pdf.info.wrapper.ListBoxHelper;
 import com.foobnix.pdf.info.wrapper.MagicHelper;
 import com.foobnix.pdf.info.wrapper.PopupHelper;
 import com.foobnix.pdf.search.activity.HorizontalViewActivity;
-import com.foobnix.pdf.search.activity.PageImageState;
+import com.foobnix.pdf.search.activity.PageState;
 import com.foobnix.pdf.search.activity.msg.FlippingStart;
 import com.foobnix.pdf.search.activity.msg.FlippingStop;
 import com.foobnix.pdf.search.activity.msg.InvalidateMessage;
@@ -2740,13 +2739,13 @@ public class DragingDialogs {
                     if (onMoveCut != null) {
                         onMoveCut.onResultRecive(AppState.get().cutP);
                     }
-                    PageImageState.get().isShowCuttingLine = true;
+                    PageState.get().isShowCuttingLine = true;
                 }
             };
 
             @Override
             public View getContentView(LayoutInflater inflater) {
-                PageImageState.get().isShowCuttingLine = false;
+                PageState.get().isShowCuttingLine = false;
 
                 View view = inflater.inflate(R.layout.slice_dialog, null, false);
                 editPercent = view.findViewById(R.id.editPercent);
@@ -2805,7 +2804,7 @@ public class DragingDialogs {
 
                     @Override
                     public void onClick(View v) {
-                        PageImageState.get().isShowCuttingLine = false;
+                        PageState.get().isShowCuttingLine = false;
                         AppSP.get().isCut = false;
                         AppBook bookSettings = SettingsManager.getBookSettings(controller.getCurrentBook().getPath());
                         boolean wasSplit = bookSettings.sp;
@@ -2824,7 +2823,7 @@ public class DragingDialogs {
 
                     @Override
                     public void onClick(View v) {
-                        PageImageState.get().isShowCuttingLine = false;
+                        PageState.get().isShowCuttingLine = false;
                         AppSP.get().isCut = true;
                         AppSP.get().isCrop = false;
                         boolean init = SettingsManager.getBookSettings().sp;
@@ -2846,7 +2845,7 @@ public class DragingDialogs {
 
             @Override
             public void run() {
-                PageImageState.get().isShowCuttingLine = false;
+                PageState.get().isShowCuttingLine = false;
                 EventBus.getDefault().post(new InvalidateMessage());
             }
         });

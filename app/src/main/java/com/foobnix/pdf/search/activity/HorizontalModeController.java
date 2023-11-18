@@ -71,8 +71,8 @@ public abstract class HorizontalModeController extends DocumentController {
 
         matrixSP = activity.getSharedPreferences("matrix", Context.MODE_PRIVATE);
 
-        PageImageState.get().cleanSelectedWords();
-        PageImageState.get().pagesText.clear();
+        PageState.get().cleanSelectedWords();
+        PageState.get().pagesText.clear();
 
         AppSP.get().isSmartReflow = false;
 
@@ -154,20 +154,20 @@ public abstract class HorizontalModeController extends DocumentController {
         }
 
         if (false) {
-            PageImageState.get().needAutoFit = true;
+            PageState.get().needAutoFit = true;
         } else {
             if (TxtUtils.isNotEmpty(bookPath) && !ExtUtils.isTextFomat(bookPath)) {
                 String string = matrixSP.getString(bookPath.hashCode() + "", "");
                 LOG.d("MATRIX", "READ STR", string);
                 if (TxtUtils.isEmpty(string) || AppSP.get().isCut || AppSP.get().isCrop) {
-                    PageImageState.get().needAutoFit = true;
+                    PageState.get().needAutoFit = true;
                 } else {
-                    PageImageState.get().needAutoFit = false;
+                    PageState.get().needAutoFit = false;
                 }
-                Matrix matrix = PageImageState.fromString(string);
-                PageImageState.get().getMatrix().set(matrix);
+                Matrix matrix = PageState.fromString(string);
+                PageState.get().getMatrix().set(matrix);
 
-                LOG.d("MATRIX", "READ", bookPath.hashCode() + "", PageImageState.get().getMatrixAsString());
+                LOG.d("MATRIX", "READ", bookPath.hashCode() + "", PageState.get().getMatrixAsString());
 
             }
         }
@@ -218,7 +218,7 @@ public abstract class HorizontalModeController extends DocumentController {
     @Override
     public void cleanImageMatrix() {
         try {
-            PageImageState.get().getMatrix().reset();
+            PageState.get().getMatrix().reset();
             matrixSP.edit().remove("" + bookPath.hashCode()).commit();
         } catch (Exception e) {
             LOG.e(e);
@@ -444,8 +444,8 @@ public abstract class HorizontalModeController extends DocumentController {
                 }
                 try {
                     if (!ExtUtils.isTextFomat(bookPath)) {
-                        matrixSP.edit().putString(bookPath.hashCode() + "", PageImageState.get().getMatrixAsString()).commit();
-                        LOG.d("MATRIX", "SAVE", bookPath.hashCode() + "", PageImageState.get().getMatrixAsString());
+                        matrixSP.edit().putString(bookPath.hashCode() + "", PageState.get().getMatrixAsString()).commit();
+                        LOG.d("MATRIX", "SAVE", bookPath.hashCode() + "", PageState.get().getMatrixAsString());
                     }
                 } catch (Exception e) {
                     LOG.e(e);
@@ -515,7 +515,7 @@ public abstract class HorizontalModeController extends DocumentController {
     public void clearSelectedText() {
         EventBus.getDefault().post(new MessagePageXY(MessagePageXY.TYPE_HIDE));
         AppState.get().selectedText = null;
-        PageImageState.get().cleanSelectedWords();
+        PageState.get().cleanSelectedWords();
         EventBus.getDefault().post(new InvalidateMessage());
     }
 
@@ -612,7 +612,7 @@ public abstract class HorizontalModeController extends DocumentController {
             @Override
             protected Object doInBackground(Object... params) {
                 try {
-                    PageImageState.get().cleanSelectedWords();
+                    PageState.get().cleanSelectedWords();
                     String textLowCase = text.toLowerCase(Locale.US);
                     String bookPath = getBookPath();
                     int prev = -1;
@@ -631,13 +631,13 @@ public abstract class HorizontalModeController extends DocumentController {
                                 return;
                             Integer pageNumber = (Integer) data;
                             LOG.d("Find on page_", pageNumber, text, word);
-                            List<TextWord> selectedWords = PageImageState.get().getSelectedWords(pageNumber);
+                            List<TextWord> selectedWords = PageState.get().getSelectedWords(pageNumber);
                             if (selectedWords == null || selectedWords.size() <= 0) {
                                 result.onResultRecive(pageNumber);
                                 LOG.d("Find on page", pageNumber, text);
                             }
                             if (selectedWords == null || !selectedWords.contains(word)) {
-                                PageImageState.get().addWord(pageNumber, word);
+                                PageState.get().addWord(pageNumber, word);
                             }
                         }
                     });
@@ -684,7 +684,7 @@ public abstract class HorizontalModeController extends DocumentController {
                                             prev = i;
                                         }
                                         for (TextWord t : find) {
-                                            PageImageState.get().addWord(i, t);
+                                            PageState.get().addWord(i, t);
                                         }
                                     }
 
@@ -694,7 +694,7 @@ public abstract class HorizontalModeController extends DocumentController {
                                         result.onResultRecive(i);
                                         prev = i;
                                     }
-                                    PageImageState.get().addWord(i, word);
+                                    PageState.get().addWord(i, word);
                                 } else if (word.w.length() >= 3 && word.w.endsWith("-")) {
                                     nextWorld = true;
                                     firstWord = word;
@@ -702,8 +702,8 @@ public abstract class HorizontalModeController extends DocumentController {
                                     firstPart = word.w.replace("-", "");
                                 } else if (nextWorld && (firstPart + word.w.toLowerCase(Locale.US)).contains(text)) {
                                     LOG.d("Contains 2", firstPart, word.w, text);
-                                    PageImageState.get().addWord(firstWordIndex, firstWord);
-                                    PageImageState.get().addWord(i, word);
+                                    PageState.get().addWord(firstWordIndex, firstWord);
+                                    PageState.get().addWord(i, word);
                                     nextWorld = false;
                                     firstWord = null;
                                     firstPart = "";
@@ -767,13 +767,13 @@ public abstract class HorizontalModeController extends DocumentController {
 
     @Override
     public void alignDocument() {
-        PageImageState.get().isAutoFit = true;
+        PageState.get().isAutoFit = true;
         EventBus.getDefault().post(new MessageAutoFit(getCurentPage()));
     }
 
     @Override
     public void centerHorizontal() {
-        PageImageState.get().isAutoFit = true;
+        PageState.get().isAutoFit = true;
         EventBus.getDefault().post(new MessageCenterHorizontally(getCurentPage()));
     }
 
