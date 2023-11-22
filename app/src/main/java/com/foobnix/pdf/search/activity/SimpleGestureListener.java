@@ -364,7 +364,7 @@ class SimpleGestureListener extends GestureDetector.SimpleOnGestureListener {
                 if (TxtUtils.isNotEmpty(AppState.get().selectedText)) {
                     EventBus.getDefault().post(new MessageEvent(MessageEvent.MESSAGE_SELECTED_TEXT));
                 } else if (AppState.get().isSelectTexByTouch && !new ClickUtils().isClickCenter(event.getX(), event.getY())) {
-                    LOG.d("PageImaveView MESSAGE_PERFORM_CLICK", 2);
+                    LOG.d("PageImageView MESSAGE_PERFORM_CLICK", 2);
                     EventBus.getDefault().post(new MessageEvent(MessageEvent.MESSAGE_PERFORM_CLICK, event.getX(), event.getY()));
                 }
 

@@ -85,6 +85,7 @@ import com.foobnix.pdf.info.widget.DraggbleTouchListener;
 import com.foobnix.pdf.info.widget.ShareDialog;
 import com.foobnix.pdf.info.wrapper.DocumentController;
 import com.foobnix.pdf.info.wrapper.MagicHelper;
+import com.foobnix.pdf.search.activity.handlers.MessageEventHandler;
 import com.foobnix.pdf.search.activity.msg.FlippingStart;
 import com.foobnix.pdf.search.activity.msg.FlippingStop;
 import com.foobnix.pdf.search.activity.msg.InvalidateMessage;
@@ -256,13 +257,7 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
 
         }
     };
-    Runnable doShowHideWrapperControllsRunnable = new Runnable() {
 
-        @Override
-        public void run() {
-            doShowHideWrapperControlls();
-        }
-    };
     long keyTimeout = 0;
     OnLongClickListener onCloseLongClick = new OnLongClickListener() {
 
@@ -1420,7 +1415,7 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
         }
     };
 
-    private boolean closeDialogs() {
+    public boolean closeDialogs() {
         if (dc == null) {
             return false;
         }
@@ -1750,114 +1745,10 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
 
     @Subscribe
     public void onEvent(MessageEvent ev) {
-
-        if (currentScrollState != ViewPager.SCROLL_STATE_IDLE) {
-            LOG.d("Skip event");
-            return;
-        }
-
-        clickUtils.init();
-        LOG.d("MessageEvent", ev.getMessage(), ev.getX(), ev.getY());
-        if (ev.getMessage().equals(MessageEvent.MESSAGE_CLOSE_BOOK)) {
-            showInterstial();
-        } else if (ev.getMessage().equals(MessageEvent.MESSAGE_CLOSE_BOOK_APP)) {
-            dc.onCloseActivityFinal(new Runnable() {
-
-                @Override
-                public void run() {
-                    MainTabs2.closeApp(dc.getActivity());
-                }
-            });
-        } else if (ev.getMessage().equals(MessageEvent.MESSAGE_PERFORM_CLICK)) {
-            boolean isOpen = closeDialogs();
-            if (isOpen) {
-                return;
-            }
-
-            int x = (int) ev.getX();
-            int y = (int) ev.getY();
-            if (clickUtils.isClickRight(x, y) && AppState.get().tapZoneRight != AppState.TAP_DO_NOTHING) {
-                if (AppState.get().tapZoneRight == AppState.TAP_NEXT_PAGE) {
-                    nextPage();
-                } else {
-                    prevPage();
-                }
-            } else if (clickUtils.isClickLeft(x, y) && AppState.get().tapZoneLeft != AppState.TAP_DO_NOTHING) {
-                if (AppState.get().tapZoneLeft == AppState.TAP_PREV_PAGE) {
-                    prevPage();
-                } else {
-                    nextPage();
-                }
-            } else if (clickUtils.isClickTop(x, y) && AppState.get().tapZoneTop != AppState.TAP_DO_NOTHING) {
-                if (AppState.get().tapZoneTop == AppState.TAP_PREV_PAGE) {
-                    prevPage();
-                } else {
-                    nextPage();
-                }
-
-            } else if (clickUtils.isClickBottom(x, y) && AppState.get().tapZoneBottom != AppState.TAP_DO_NOTHING) {
-                if (AppState.get().tapZoneBottom == AppState.TAP_NEXT_PAGE) {
-                    nextPage();
-                } else {
-                    prevPage();
-                }
-
-            } else {
-                LOG.d("Click-center!", x, y);
-                handler.removeCallbacks(doShowHideWrapperControllsRunnable);
-                handler.postDelayed(doShowHideWrapperControllsRunnable, 250);
-                // Toast.makeText(this, "Click", Toast.LENGTH_SHORT).show();
-            }
-        } else if (ev.getMessage().equals(MessageEvent.MESSAGE_DOUBLE_TAP)) {
-            handler.removeCallbacks(doShowHideWrapperControllsRunnable);
-            updateLockMode();
-            // Toast.makeText(this, "DB", Toast.LENGTH_SHORT).show();
-        } else if (ev.getMessage().equals(MessageEvent.MESSAGE_PLAY_PAUSE)) {
-            TTSService.playPause(HorizontalViewActivity.this, dc);
-        } else if (ev.getMessage().equals(MessageEvent.MESSAGE_SELECTED_TEXT)) {
-            if (dc.isTextFormat() && TxtUtils.isFooterNote(AppState.get().selectedText)) {
-                DragingDialogs.showFootNotes(anchor, dc, new Runnable() {
-
-                    @Override
-                    public void run() {
-                        showHideHistory();
-                    }
-                });
-            } else {
-
-                if (AppState.get().isRememberDictionary) {
-                    final String text = AppState.get().selectedText;
-                    DictsHelper.runIntent(dc.getActivity(), text);
-                    dc.clearSelectedText();
-                } else {
-                    DragingDialogs.selectTextMenu(anchor, dc, true, onRefresh);
-                }
-            }
-        } else if (ev.getMessage().equals(MessageEvent.MESSAGE_GOTO_PAGE_BY_LINK)) {
-            if (ev.getPage() == -1 && TxtUtils.isNotEmpty(ev.getBody())) {
-                AlertDialogs.openUrl(this, ev.getBody());
-            } else {
-                dc.getLinkHistory().add(dc.getCurentPage() + 1);
-                dc.onGoToPage(ev.getPage() + 1);
-                showHideHistory();
-            }
-        } else if (ev.getMessage().equals(MessageEvent.MESSAGE_GOTO_PAGE_SWIPE)) {
-            if (ev.getPage() > 0) {
-                nextPage();
-            } else {
-                prevPage();
-            }
-        } else if (ev.getMessage().equals(MessageEvent.MESSAGE_AUTO_SCROLL)) {
-            if (isFlipping) {
-                onFlippingStop(null);
-            } else {
-                onFlippingStart(null);
-            }
-
-        }
+        new MessageEventHandler().onEvent(ev, this);
     }
 
-    private void doShowHideWrapperControlls() {
+    public void doShowHideWrapperControlls() {
         AppState.get().isEditMode = !AppState.get().isEditMode;
         hideShow();
     }
@@ -2532,4 +2423,31 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
     }
 
 
+    public int getCurrentScrollState() {
+        return currentScrollState;
+    }
+
+    public ClickUtils getClickUtils() {
+        return clickUtils;
+    }
+
+    public HorizontalModeController getModeController() {
+        return dc;
+    }
+
+    public Handler getHandler() {
+        return handler;
+    }
+
+    public FrameLayout getAnchor() {
+        return anchor;
+    }
+
+    public boolean isFlipping() {
+        return isFlipping;
+    }
+
+    public Runnable getOnRefresh() {
+        return onRefresh;
+    }
 }
