@@ -19,6 +19,7 @@ import com.foobnix.android.utils.LOG;
 import com.foobnix.model.AppData;
 import com.foobnix.model.AppSP;
 import com.foobnix.model.AppState;
+import com.foobnix.pdf.info.dictionary.InAppDictionary;
 import com.foobnix.sys.TempHolder;
 
 import java.util.ArrayList;
@@ -113,6 +114,7 @@ public class DictsHelper {
 
     public static List<DictItem> getAllResolveInfoAsDictItem1(Context c, String text) {
         List<DictItem> items = new ArrayList<DictItem>();
+        items.add(new DictItem("In-App Dictionary", "custom", "com.gv", null));
         items.addAll(getByType(c, getByIntent(c, getType0(text), text), "type0"));
         items.addAll(getByType(c, getByIntent(c, getType1(text), text), "type1"));
         items.addAll(getByType(c, getByIntent(c, getType2(text), text), "type2"));
@@ -182,7 +184,10 @@ public class DictsHelper {
                     }
                 }
                 Toast.makeText(c, R.string.msg_unexpected_error, Toast.LENGTH_SHORT).show();
-
+            }
+            if (dict.startsWith("custom")) {
+                String translation = new InAppDictionary().makePostRequest(selectedText);
+                LOG.d("Translation is: " + translation);
             }
         } catch (Exception e) {
             LOG.e(e);

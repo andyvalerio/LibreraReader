@@ -76,9 +76,11 @@ android {
             minifyEnabled false
             signingConfig signingConfigs.release
             debuggable false
+            buildConfigField 'String', 'TRANSLATE_API_KEY', "\"${TRANSLATE_API_KEY}\""
         }
         debug {
             debuggable true
+            buildConfigField 'String', 'TRANSLATE_API_KEY', "\"${TRANSLATE_API_KEY}\""
         }
     }
 
