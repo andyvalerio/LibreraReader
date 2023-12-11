@@ -186,8 +186,7 @@ public class DictsHelper {
                 Toast.makeText(c, R.string.msg_unexpected_error, Toast.LENGTH_SHORT).show();
             }
             if (dict.startsWith("custom")) {
-                String translation = new InAppDictionary().makePostRequest(selectedText);
-                LOG.d("Translation is: " + translation);
+                new InAppDictionary().execute(selectedText);
             }
         } catch (Exception e) {
             LOG.e(e);

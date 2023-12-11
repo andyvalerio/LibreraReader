@@ -1,12 +1,14 @@
 package com.foobnix.pdf.info.dictionary;
 
+import android.os.AsyncTask;
+import com.foobnix.android.utils.LOG;
 import com.foobnix.pdf.info.BuildConfig;
 
 import java.io.IOException;
 
 import okhttp3.*;
 
-public class InAppDictionary {
+public class InAppDictionary extends AsyncTask<String, Void, String> {
 
     private final OkHttpClient client;
 
@@ -14,8 +16,9 @@ public class InAppDictionary {
         client = new OkHttpClient();
     }
 
-    public String makePostRequest(String selectedText) {
-        String requestBody = "{\"q\":\"" + selectedText + "\",\"source\":\"it\",\"target" +
+    @Override
+    protected String doInBackground(String... selectedText) {
+        String requestBody = "{\"q\":\"" + selectedText[0] + "\",\"source\":\"it\",\"target" +
                 "\":\"en\",\"format\":\"text\"}";
         RequestBody body = RequestBody.create(MediaType.parse("application/json"), requestBody);
 
@@ -30,7 +33,9 @@ public class InAppDictionary {
             Response response = client.newCall(request).execute();
             if (response.isSuccessful()) {
                 assert response.body() != null;
-                return response.body().string();
+                String responseText = response.body().string();
+                LOG.d("Translation is: " + responseText);
+                return responseText;
             } else {
                 throw new IOException(response.message());
             }
@@ -38,4 +43,5 @@ public class InAppDictionary {
             throw new RuntimeException(e);
         }
     }
+
 }
